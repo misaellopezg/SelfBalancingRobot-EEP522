@@ -1,0 +1,24 @@
+# Set the output to a png file
+# set terminal gpeg 
+
+set terminal jpeg
+set output "plot_memsys.jpg"
+
+set grid
+
+set title 'Memory subsystem"
+
+set xlabel 'Tests'
+set ylabel 'Time (seconds)'
+
+#plot "tmp.dat" using 1:2 title 'time' with lines, \
+#     "tmp.dat" using 1:3 title 'temp' with lines, \
+#     "tmp.dat" using 1:($2*$3) title 'energy' with lines
+     
+plot "main.dat" using 1:4 title 'working with the memory system' with lines, \
+     "main.dat" using 1:5 title 'working against the memory system' with lines     
+     
+     
+    
+
+

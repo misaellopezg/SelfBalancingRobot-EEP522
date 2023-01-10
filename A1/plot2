@@ -1,0 +1,25 @@
+# Set the output to a png file
+# set terminal gpeg 
+
+set terminal jpeg
+set output "plot_memlib.jpg"
+
+set grid
+
+set title 'Memory Library Tests"
+
+set xlabel 'Tests'
+set ylabel 'Time/Rel. Temp/ Rel. Energy'
+
+
+plot "main.dat" using 1:2 smooth sbezier title 'time to completion' with lines, \
+     "main.dat" using 1:3 smooth sbezier title 'relative temperature C' with lines, \
+     "main.dat" using 1:($2*$3) smooth sbezier title 'est. energy' with lines
+     
+#plot "main.dat" using 1:4 title '[x][y]' with lines, \
+#     "main.dat" using 1:5 title '[y][x]' with lines     
+     
+     
+    
+
+

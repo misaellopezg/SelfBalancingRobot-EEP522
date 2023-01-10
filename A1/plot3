@@ -1,0 +1,26 @@
+# Set the output to a png file
+# set terminal gpeg 
+
+
+set terminal jpeg
+set output "plot_tests.jpg"
+
+set grid
+set yrange [0:500]
+
+set style fill pattern
+set style histogram clustered
+set style data histograms
+
+
+set title 'Total time to run tests'
+
+set xlabel 'Number of tests'
+set ylabel 'Time (Seconds)'
+      
+plot "test.dat" using 2:xtic(1) title 'time taken' with histograms 
+     
+     
+    
+
+
