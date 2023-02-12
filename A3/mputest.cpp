@@ -7,11 +7,16 @@
 #include <bcm2835.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 #include "mpu6050.h"
 #include <math.h>
 #include "l298n.h"
 
 #define MPU6050_ADDRESS 0x68
+
+#define PIN17 RPI_BPLUS_GPIO_J8_11 //GPIO 0
+#define PIN27 RPI_BPLUS_GPIO_J8_13 //GPIO 2
+#define PIN18 RPI_BPLUS_GPIO_J8_12   // GPIO 12 PWN
 
 int main(int argc, char *argv[]) 
 {
@@ -24,7 +29,7 @@ int main(int argc, char *argv[])
 	bcm2835_i2c_begin();
 	bcm2835_i2c_setSlaveAddress(MPU6050_ADDRESS);
 	
-
+	
 	/*Create MPU6050 Sensor*/
 	mpu6050 mympu; 
 	//mympu.reset();
@@ -40,10 +45,22 @@ int main(int argc, char *argv[])
 
 	float angle; //calculate angle
 
+	/*Create H Bridge controller for motors*/
+	l298n myhbridge(PIN17, PIN27, PIN18); 
+
 	d_ID = mympu.getDeviceID(); 
 	printf("Device ID: %d \n", d_ID); 
 	while(1)
 	{
+		myhbridge.setPWM(1023); 
+		myhbridge.clockwiseMotors();
+		sleep(1); 
+		myhbridge.counterclockwiseMotors(); 
+		sleep(1); 
+		myhbridge.stopMotors(); 
+		sleep(1); 
+
+		/*
 		//mympu.getAccelX(&ax); 
 		mympu.getAccelY(&ay); 
 		mympu.getAccelZ(&az); 
@@ -51,6 +68,7 @@ int main(int argc, char *argv[])
 
 		angle = atan2((double)ay,(double)az)*(180/M_PI);
 		printf("Accel Angle: %f \n", angle); 
+		*/
 
 	}
 	bcm2835_i2c_end();

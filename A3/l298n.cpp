@@ -33,7 +33,7 @@ l298n::l298n(uint8_t pin1, uint8_t pin2, uint8_t pinEn)
     bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_16);
     bcm2835_pwm_set_mode(PWM_CHANNEL, 1, 1);
     bcm2835_pwm_set_range(PWM_CHANNEL, PWM_RANGE);
-    bcm2835_pwm_set_data(PWM_CHANNEL, pwm);
+    bcm2835_pwm_set_data(PWM_CHANNEL, 0);
 }
 
 /*Used to stop motors*/
