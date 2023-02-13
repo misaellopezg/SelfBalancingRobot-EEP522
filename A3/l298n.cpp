@@ -10,7 +10,7 @@
 #include <bcm2835.h>
 #include <unistd.h>
 
-#define PWM_RANGE 1024
+#define PWM_RANGE 256
 #define PWM_CHANNEL 0
 
 //Initialize motor
@@ -30,7 +30,7 @@ l298n::l298n(uint8_t pin1, uint8_t pin2, uint8_t pinEn)
     bcm2835_gpio_write(in2, HIGH);
     // Set the output pin to Alt Fun 5, to allow PWM channel 0 to be output there
     bcm2835_gpio_fsel(enA, BCM2835_GPIO_FSEL_ALT5);
-    bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_16);
+    bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_256);
     bcm2835_pwm_set_mode(PWM_CHANNEL, 1, 1);
     bcm2835_pwm_set_range(PWM_CHANNEL, PWM_RANGE);
     bcm2835_pwm_set_data(PWM_CHANNEL, 0);
