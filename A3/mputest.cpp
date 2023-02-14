@@ -12,14 +12,13 @@
 #include <math.h>
 #include "l298n.h"
 #include <time.h>
+#include "pid.h"
 
 #define MPU6050_ADDRESS 0x68
 
 #define PIN17 RPI_BPLUS_GPIO_J8_11 //GPIO 0
 #define PIN27 RPI_BPLUS_GPIO_J8_13 //GPIO 2
 #define PIN18 RPI_BPLUS_GPIO_J8_12   // GPIO 12 PWN
-
-#define SAMPLE_TIME 0.02; 
 
 long mapval(long x, long in_min, long in_max, long out_min, long out_max);
 
@@ -60,6 +59,13 @@ int main(int argc, char *argv[])
 	/*Create H Bridge controller for motors*/
 	l298n myhbridge(PIN17, PIN27, PIN18); 
 
+	/*Create PID Controller*/
+	double input; 
+	double output; 
+	double setpoint; 
+	setpoint = 0; //targeting 0 degrees
+	PID mypid(&input, &output, &setpoint, 5, 0, 0); 
+
 	/*Test MPU*/
 	d_ID = mympu.getDeviceID(); 
 	printf("Device ID: %d \n", d_ID); 
@@ -67,7 +73,7 @@ int main(int argc, char *argv[])
 	/*Define Timer variables*/
 	clock_t t; 
 	t = clock();  
-	double time_taken; 
+	unsigned long time_taken; 
 
 	/*Define other variables*/
 	
@@ -79,15 +85,21 @@ int main(int argc, char *argv[])
 		accelAngle = atan2((double)ay,(double)az)*(180/M_PI);
 
 		//Execute every SAMPLE_TIME seconds
-		time_taken = ((double)(clock()-t))/CLOCKS_PER_SEC;
-		if(time_taken > 0.02)
+		time_taken = clock()-t;
+		//printf("Time taken: %d\n", clock()-t); 
+		if(time_taken > 20000) 
 		{
-			long gxrate = mapval(gx, -32768, 32767, -250, 250);
-			gyroAngle = gyroAngle + (float)gxrate*time_taken; 
-			float curAngle = 0.0066*(prevAngle + gyroAngle) + (1.0-0.0066)*(accelAngle);
+			/*
+			float pct = 0.0;
+			long gxrate = 3-mapval(gx, -32768, 32767, -250, 250);
+			gyroAngle = gyroAngle + (float)gxrate*time_taken/CLOCKS_PER_SEC; 
+			curAngle = (pct)*(prevAngle + gyroAngle) + (1-pct)*(accelAngle);
 			prevAngle = curAngle; 
-			printf("Angle: %f\n", curAngle); 
-			//printf("Time elapsed: %f s\n", time_taken); 
+			*/
+			curAngle = accelAngle; 
+			input = curAngle; 
+			mypid.computePID(); 
+			printf("PID output: %f\n", output); 
 			t = clock(); 
 		}
 
