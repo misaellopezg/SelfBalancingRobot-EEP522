@@ -65,5 +65,13 @@ void l298n::counterclockwiseMotors()//
 void l298n::setPWM(uint16_t pwmval)
 {
     pwm = pwmval; 
+    if(pwm > 255)
+    {
+        pwm = 255;
+    }
+    if(pwm < 0)
+    {
+        pwm = 0; 
+    }
     bcm2835_pwm_set_data(PWM_CHANNEL, pwm);
 }

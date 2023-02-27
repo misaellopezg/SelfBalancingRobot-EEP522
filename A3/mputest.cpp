@@ -16,13 +16,13 @@
 
 #define MPU6050_ADDRESS 0x68
 
-#define PIN17 RPI_BPLUS_GPIO_J8_11 //GPIO 0
-#define PIN27 RPI_BPLUS_GPIO_J8_13 //GPIO 2
-#define PIN18 RPI_BPLUS_GPIO_J8_12   // GPIO 12 PWN
+#define PIN17 RPI_BPLUS_GPIO_J8_11 //GPIO 17
+#define PIN27 RPI_BPLUS_GPIO_J8_13 //GPIO 27
+#define PIN18 RPI_BPLUS_GPIO_J8_12   // GPIO 18 PWN
 
 long mapval(long x, long in_min, long in_max, long out_min, long out_max);
 
-int main(int argc, char *argv[]) 
+int main() 
 {
 	/*Set up BCM2835 for I2C*/
   	if(!bcm2835_init()) 
@@ -58,13 +58,16 @@ int main(int argc, char *argv[])
 
 	/*Create H Bridge controller for motors*/
 	l298n myhbridge(PIN17, PIN27, PIN18); 
+	uint16_t pwmval; //pwm val for h bridge
+	const uint16_t minPWM = 71; //set min PWM val for motors 
+	const uint16_t maxPWM = 225; //set Max PWM val for motors
 
 	/*Create PID Controller*/
 	double input; 
 	double output; 
 	double setpoint; 
 	setpoint = 0; //targeting 0 degrees
-	PID mypid(&input, &output, &setpoint, 5, 0, 0); 
+	PID mypid(&input, &output, &setpoint, 1.0, 2.0, 0.0); 
 
 	/*Test MPU*/
 	d_ID = mympu.getDeviceID(); 
@@ -102,7 +105,20 @@ int main(int argc, char *argv[])
 			printf("PID output: %f\n", output); 
 			t = clock(); 
 		}
-
+		if(output < 0)
+		{
+			pwmval = (uint16_t)mapval(output*-1.0, 0, 255, minPWM, maxPWM); 
+			myhbridge.counterclockwiseMotors();
+			//myhbridge.setPWM(output*-1.0);  
+			myhbridge.setPWM(pwmval); 
+		}
+		if(output >= 0)
+		{
+			pwmval = (uint16_t)mapval(output, 0, 255, minPWM, maxPWM); 
+			myhbridge.clockwiseMotors(); 
+			myhbridge.setPWM(pwmval);  
+		}
+		//printf("PWM Output: %d\n", pwmval); 
 	}
 	bcm2835_i2c_end();
 	bcm2835_close();
@@ -110,7 +126,8 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-
+/*Mapping function 
+Used to transform PID output to PWM val*/
 long mapval(long x, long in_min, long in_max, long out_min, long out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
