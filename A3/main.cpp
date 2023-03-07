@@ -14,12 +14,13 @@
 #include <time.h>
 #include "pid.h"
 
-#define MPU6050_ADDRESS 0x68
-
+#define MPU6050_ADDRESS 0x68 //MPU6050 address
 #define PIN17 RPI_BPLUS_GPIO_J8_11 //GPIO 17
 #define PIN27 RPI_BPLUS_GPIO_J8_13 //GPIO 27
 #define PIN18 RPI_BPLUS_GPIO_J8_12   // GPIO 18 PWN
 
+/*Mapping function 
+Used to transform PID output to PWM val*/
 long mapval(long x, long in_min, long in_max, long out_min, long out_max);
 
 int main() 
@@ -82,34 +83,27 @@ int main()
 	
 	while(1)
 	{ 
+		//Get acceleration values to calculate angle
 		mympu.getAccelY(&ay); 
 		mympu.getAccelZ(&az); 
 		mympu.getGyroX(&gx);
 		accelAngle = atan2((double)ay,(double)az)*(180/M_PI);
 
-		//Execute every SAMPLE_TIME seconds
+		//Execute PID loop every SAMPLE_TIME seconds
 		time_taken = clock()-t;
-		//printf("Time taken: %d\n", clock()-t); 
 		if(time_taken > 20000) 
 		{
-			/*
-			float pct = 0.0;
-			long gxrate = 3-mapval(gx, -32768, 32767, -250, 250);
-			gyroAngle = gyroAngle + (float)gxrate*time_taken/CLOCKS_PER_SEC; 
-			curAngle = (pct)*(prevAngle + gyroAngle) + (1-pct)*(accelAngle);
-			prevAngle = curAngle; 
-			*/
 			curAngle = accelAngle; 
 			input = curAngle; 
 			mypid.computePID(); 
 			printf("PID output: %f\n", output); 
 			t = clock(); 
 		}
+		//Based on PID output, set motors to rotate in desired direction along with PWM val
 		if(output < 0)
 		{
 			pwmval = (uint16_t)mapval(output*-1.0, 0, 255, minPWM, maxPWM); 
 			myhbridge.counterclockwiseMotors();
-			//myhbridge.setPWM(output*-1.0);  
 			myhbridge.setPWM(pwmval); 
 		}
 		if(output >= 0)
@@ -118,7 +112,6 @@ int main()
 			myhbridge.clockwiseMotors(); 
 			myhbridge.setPWM(pwmval);  
 		}
-		//printf("PWM Output: %d\n", pwmval); 
 	}
 	bcm2835_i2c_end();
 	bcm2835_close();
